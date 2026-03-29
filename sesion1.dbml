@@ -1,0 +1,33 @@
+// Diagrama para Sesión 1: Curso Tópicos
+
+Table Clientes {
+  ClienteID number [primary key]
+  Nombre varchar2(50)
+  Ciudad varchar2(50)
+  FechaNacimiento date
+}
+
+Table Pedidos {
+  PedidoID number [primary key]
+  ClienteID number
+  Total number
+  FechaPedido date
+}
+
+Table Productos {
+  ProductoID number [primary key]
+  Nombre varchar2(50)
+  Precio number
+}
+
+Table DetallesPedidos {
+  DetalleID number [primary key]
+  PedidoID number
+  ProductoID number
+  Cantidad number
+}
+
+// Relaciones (Integridad Referencial)
+Ref: Pedidos.ClienteID > Clientes.ClienteID
+Ref: DetallesPedidos.PedidoID > Pedidos.PedidoID
+Ref: DetallesPedidos.ProductoID > Productos.ProductoID
