@@ -1,13 +1,42 @@
+-- Consultar todos los clientes de la ciudad de 'Santiago'
+SELECT Nombre, Ciudad 
+FROM Clientes 
+WHERE Ciudad = 'Santiago';
 
-SQL*Plus: Release 21.0.0.0.0 - Production on Mon Mar 30 01:59:24 2026
-Version 21.3.0.0.0
+-- Consultar los productos que tienen un precio mayor a 500
+SELECT Nombre, Precio 
+FROM Productos 
+WHERE Precio > 500;
 
-Copyright (c) 1982, 2021, Oracle.  All rights reserved.
+-- Obtener el total de dinero sumado de todos los pedidos realizados
+SELECT SUM(Total) AS Gran_Total_Ventas 
+FROM Pedidos;
 
-Last Successful login time: Mon Mar 30 2026 01:56:43 +00:00
+-- Contar cuántos clientes hay registrados por cada ciudad
+SELECT Ciudad, COUNT(*) AS Cantidad_Clientes 
+FROM Clientes 
+GROUP BY Ciudad;
 
-Connected to:
-Oracle Database 21c Express Edition Release 21.0.0.0.0 - Production
-Version 21.3.0.0.0
+-- Buscar clientes cuyo nombre empiece con 'A', 'B' o 'M'
+SELECT Nombre 
+FROM Clientes 
+WHERE REGEXP_LIKE(Nombre, '^[ABM]');
 
-SQL> SQL> SQL> SQL> SQL> 
+-- Buscar productos cuyo nombre contenga la palabra 'top' (como Laptop) sin importar mayúsculas
+SELECT Nombre 
+FROM Productos 
+WHERE REGEXP_LIKE(Nombre, 'top', 'i');
+
+-- Vista 1: Resumen de pedidos con el nombre del cliente
+CREATE OR REPLACE VIEW Vista_Resumen_Pedidos AS
+SELECT p.PedidoID, c.Nombre AS Cliente, p.Total, p.FechaPedido
+FROM Pedidos p
+JOIN Clientes c ON p.ClienteID = c.ClienteID;
+
+-- Vista 2: Catálogo de productos caros (más de 100)
+CREATE OR REPLACE VIEW Vista_Productos_Premium AS
+SELECT Nombre, Precio
+FROM Productos
+WHERE Precio > 100;
+
+COMMIT;
