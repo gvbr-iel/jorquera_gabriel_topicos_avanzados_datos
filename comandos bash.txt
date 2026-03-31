@@ -1,0 +1,23 @@
+comandos bash
+
+CREAR DIRECTORIO
+mkdir <nombre de directorio>
+
+CAMBIAR/MOVER NOMBRE/UBICACIÓN ARCHIVO O DIRECTORIO
+mv <nombre antiguo> <nombre nuevo>
+mv <ubicación antigua> <ubicación nueva>
+
+COPIAR LOS ARCHIVOS DE UN REPO CLONADO A UNO ARBITRARIO
+cp -r <ruta de repo clonado>. <ruta de repo local> 
+
+INICIAR GIT BASH EN UN DIRECTORIO ARBITRARIO
+dentro del archivo .bashrc en user colocar sgte comando.
+cd <dirección de directorio>
+
+ACTIVAR RETORNO DE CARRO O SALTO DE LÍNEA
+echo -e "Línea 1\nLínea 2"
+
+
+
+
+

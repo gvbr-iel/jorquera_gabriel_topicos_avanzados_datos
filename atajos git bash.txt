@@ -1,0 +1,29 @@
+atajos git bash
+ELIMINAR PALABRAS DE LA CONSOLA
+ctrl + w
+alt + backspace
+
+ELIMINAR PALABRAS HASTA/DESDE CURSOR
+ctrl + u / ctrl + k
+
+BORRAR TODO LO ESCRITO
+ctrl + c
+
+LIMPIAR PANTALLA
+ctrl + L
+
+atajos vim
+MODO NORMAL -> mover y borrar
+esc
+
+MOVERSE
+h(izq), j(abajo), k(arriba), l(der), x(borrar carácter),
+dw (borrar palabra), dd(borrar línea), u(Undo), ctrl+u(Redo)
+
+MODO INSERTAR -> escribir texto
+i 
+
+MODO COMANDOS -> guardar o salir
+: = :q (salir), :q! (salir sin guardar), :w(guardar), :wq - :x (guardar y salir) 
+
+
