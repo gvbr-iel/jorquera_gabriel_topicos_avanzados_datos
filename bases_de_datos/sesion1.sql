@@ -1448,3 +1448,101 @@ BEGIN
     UPDATE Productos SET Precio = Precio * 1.10 WHERE ProductoID = 1;
 END;
 /
+
+--Sesion 13
+-- Actividad Práctica 1: Procedimiento para actualizar inventario con Savepoints[cite: 2]
+CREATE OR REPLACE PROCEDURE actualizar_inventario_pedido(p_pedido_id IN NUMBER) AS
+    CURSOR detalle_cursor IS
+        SELECT ProductoID, Cantidad
+        FROM DetallesPedidos
+        WHERE PedidoID = p_pedido_id;
+    v_cantidad_actual NUMBER;
+BEGIN
+    FOR detalle IN detalle_cursor LOOP
+        -- Verificar cantidad disponible
+        SELECT Cantidad INTO v_cantidad_actual
+        FROM Inventario
+        WHERE ProductoID = detalle.ProductoID;
+        
+        SAVEPOINT antes_reducir;
+        
+        IF v_cantidad_actual < detalle.Cantidad THEN
+            RAISE_APPLICATION_ERROR(-20001, 'No hay suficiente inventario para el producto ' || detalle.ProductoID);
+        END IF;
+        
+        UPDATE Inventario
+        SET Cantidad = Cantidad - detalle.Cantidad
+        WHERE ProductoID = detalle.ProductoID;
+        
+        DBMS_OUTPUT.PUT_LINE('Inventario actualizado para producto ' || detalle.ProductoID);
+    END LOOP;
+    COMMIT;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Error: Producto no encontrado en inventario.');
+        ROLLBACK;
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        ROLLBACK TO antes_reducir;
+        COMMIT; -- Confirma lo realizado hasta antes del error
+END;
+/
+
+-- Actividad Práctica 2: Diseño de Data Warehouse (Modelo Estrella)[cite: 2]
+
+-- 1. Tablas de Dimensiones
+CREATE TABLE Dim_Cliente (
+    ClienteID NUMBER PRIMARY KEY,
+    Nombre VARCHAR2(50),
+    Ciudad VARCHAR2(50)
+);
+
+INSERT INTO Dim_Cliente SELECT ClienteID, Nombre, Ciudad FROM Clientes;
+
+CREATE TABLE Dim_Ciudad (
+    CiudadID NUMBER PRIMARY KEY,
+    Ciudad VARCHAR2(50)
+);
+
+INSERT INTO Dim_Ciudad (CiudadID, Ciudad)
+SELECT ROWNUM, Ciudad FROM (SELECT DISTINCT Ciudad FROM Clientes);
+
+CREATE TABLE Dim_Tiempo (
+    FechaID NUMBER PRIMARY KEY,
+    Fecha DATE,
+    Año NUMBER,
+    Mes NUMBER,
+    Día NUMBER
+);
+
+INSERT INTO Dim_Tiempo (FechaID, Fecha, Año, Mes, Día)
+SELECT ROWNUM, FechaPedido, EXTRACT(YEAR FROM FechaPedido), EXTRACT(MONTH FROM FechaPedido), EXTRACT(DAY FROM FechaPedido)
+FROM (SELECT DISTINCT FechaPedido FROM Pedidos);
+
+-- 2. Tabla de Hechos para Pedidos
+CREATE TABLE Fact_Pedidos (
+    PedidoID NUMBER,
+    ClienteID NUMBER,
+    CiudadID NUMBER,
+    FechaID NUMBER,
+    Total NUMBER,
+    CONSTRAINT fk_fp_cliente FOREIGN KEY (ClienteID) REFERENCES Dim_Cliente(ClienteID),
+    CONSTRAINT fk_fp_ciudad FOREIGN KEY (CiudadID) REFERENCES Dim_Ciudad(CiudadID),
+    CONSTRAINT fk_fp_tiempo FOREIGN KEY (FechaID) REFERENCES Dim_Tiempo(FechaID)
+);
+
+INSERT INTO Fact_Pedidos (PedidoID, ClienteID, CiudadID, FechaID, Total)
+SELECT p.PedidoID, p.ClienteID, dc.CiudadID, dt.FechaID, p.Total
+FROM Pedidos p
+JOIN Clientes c ON p.ClienteID = c.ClienteID
+JOIN Dim_Ciudad dc ON c.Ciudad = dc.Ciudad
+JOIN Dim_Tiempo dt ON p.FechaPedido = dt.Fecha;
+
+COMMIT;
+
+-- Consulta Analítica: Total de ventas por ciudad y año[cite: 2]
+SELECT dc.Ciudad, dt.Año, SUM(fp.Total) AS TotalVentas
+FROM Fact_Pedidos fp
+JOIN Dim_Ciudad dc ON fp.CiudadID = dc.CiudadID
+JOIN Dim_Tiempo dt ON fp.FechaID = dt.FechaID
+GROUP BY dc.Ciudad, dt.Año;
